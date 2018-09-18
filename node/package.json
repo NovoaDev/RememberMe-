@@ -1,0 +1,21 @@
+{
+  "name": "rememberme",
+  "version": "0.1.0",
+  "description": "RememberMe",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git"
+  },
+  "author": "Saycoron",
+  "license": "MIT",
+  "dependencies": {
+    "googleapis": "^27.0.0",
+    "node-cron": "^2.0.1",
+    "serialport": "^7.0.2"
+  }
+}
