@@ -1,7 +1,6 @@
 #include <LiquidCrystal.h>
 
-#define BOTTON_NEXT 2
-#define BOTTON_SALIR 3
+#define BOTTON_NEXT 3
 #define DIGITAL_LEDAZUL 4
 #define DIGITAL_LEDVERDE 5
 #define DIGITAL_LEDROJO 6
@@ -9,33 +8,39 @@
 
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
+String sNotificacionesCAL;
+String sNotificacionesTAS;
+String stipoNotificacion;
 String sNotificaciones;
 String sTituloNotificacion;
 String sNotificacionActual;
 String inString; 
 String sDatosPrefijo;
 String sDatosFinal;
+
 int iLargoDatos;
 int iPulsadorNext;
 int iPulsadorListo;
+
 bool bRefrescarLCD;
 bool bPregunta;
 
 void setup() {
   Serial.begin(9600);
-
   pinMode(BOTTON_NEXT, INPUT);
-  pinMode(BOTTON_SALIR, INPUT);
   pinMode(DIGITAL_LEDVERDE, OUTPUT);
   pinMode(DIGITAL_LEDAZUL, OUTPUT);
   pinMode(DIGITAL_LEDROJO, OUTPUT);
   pinMode(DIGITAL_BUZZER, OUTPUT);
-
+  
   //Valores inciales 
+  sNotificacionesCAL = "0";
+  sNotificacionesTAS = "0";
+  sTituloNotificacion = "";
+  
   bRefrescarLCD = true;
   iPulsadorNext = LOW;
   iPulsadorListo = LOW;
-
   sNotificaciones = "0";
   sTituloNotificacion = "";
   sNotificacionActual = "0";
@@ -46,23 +51,26 @@ void setup() {
   
   delay(2000);
 }
-
 void loop() {
   inString =  Serial.readStringUntil('\n'); 
   sDatosPrefijo = inString.substring(0, 3);
   iLargoDatos = inString.length();
   sDatosFinal = inString.substring(3, iLargoDatos);
   
-  if (sDatosPrefijo == "#0#") { sNotificaciones = sDatosFinal; }
   if (sDatosPrefijo == "#1#") { sTituloNotificacion = sDatosFinal; }
-  if (sDatosPrefijo == "#2#") { sNotificacionActual = sDatosFinal; }
+  if (sDatosPrefijo == "#2#") { stipoNotificacion = sDatosFinal; }
+  if (sDatosPrefijo == "#3#") { sNotificacionActual = sDatosFinal; }
+  
+  if (sDatosPrefijo == "#4#") { sNotificacionesCAL = sDatosFinal; }
+  if (sDatosPrefijo == "#5#") { sNotificacionesTAS = sDatosFinal; }
+  
   if (sTituloNotificacion !="") { 
     preguntar();
     bRefrescarLCD = true;
   } else {
     if (bRefrescarLCD) { 
-      delay(2000);
-      printLCD("RememberMe!", "Hoy : "+sNotificaciones);
+      delay(500);
+      printLCD("RememberMe!", "CAL:"+sNotificacionesCAL+" TASK:"+sNotificacionesTAS);
       ledVERDEAZULROJO(LOW, HIGH, LOW); 
       bRefrescarLCD = false;
       sTituloNotificacion = "";
@@ -71,34 +79,27 @@ void loop() {
 }
 
 void preguntar() {
-  printLCD("NOTE : "+sNotificacionActual+"/"+sNotificaciones, sTituloNotificacion);
+  if (stipoNotificacion == "CALENDARIO") {sNotificaciones =  sNotificacionesCAL;}
+  if (stipoNotificacion == "TASK") {sNotificaciones =  sNotificacionesTAS;}
+  printLCD(stipoNotificacion+": "+sNotificacionActual+"/"+sNotificaciones, sTituloNotificacion);
   bPregunta = true;
   
   while(bPregunta) {
     sonarBuzzer();
     iPulsadorNext = digitalRead(BOTTON_NEXT);
-    iPulsadorListo = digitalRead(BOTTON_SALIR);
   
     if (iPulsadorNext == HIGH) {
       ledVERDEAZULROJO(LOW, HIGH, HIGH);
-      printLCD("***** NEXT *****","   LOADING...   ");
-      Serial.println("#01#"+sTituloNotificacion);
+      printLCD(stipoNotificacion+": ","   LOADING...   ");
       salirWhile();
     } 
-  
-    if (iPulsadorListo == HIGH) {  
-      ledVERDEAZULROJO(HIGH, LOW, LOW);
-      printLCD("** COMPLETED! **" ,"ADD TO CALENDAR");
-      Serial.println("#02#TRUE");
-      salirWhile();
-    }
   } 
 }
 
 void salirWhile() {  
   sTituloNotificacion = "";
   bPregunta = false;
-  delay(3000);
+  delay(500);
 }
 
 void sonarBuzzer() {  

@@ -1,4 +1,5 @@
 node/node_modules/*
-node/credentials.json
+node/credentials/calendar/*
+node/credentials/task/*
 node/token.json
 node/package-lock.json
